@@ -56,6 +56,31 @@ def _scale_ratio_to_5(ratio: float) -> int:
     return 1
 
 
+def _normalize_action_line(line: str) -> str:
+    return re.sub(r"^[A-Za-z0-9一二三四五六七八九十\(\)（）：:、\.\-\s]+", "", line).strip()
+
+
+def _extract_action_lines(action_text: str) -> List[str]:
+    lines: List[str] = []
+    for raw in action_text.splitlines():
+        line = _normalize_action_line(raw)
+        if line:
+            lines.append(line)
+    return lines
+
+
+def _line_similarity(user_input: str, candidate: str) -> float:
+    user_grams = _zh_bigrams(user_input)
+    cand_grams = _zh_bigrams(candidate)
+    if not user_grams or not cand_grams:
+        return 0.0
+
+    overlap = len(user_grams & cand_grams)
+    cover_ratio = overlap / max(1, len(user_grams))
+    jaccard = overlap / max(1, len(user_grams | cand_grams))
+    return 0.7 * cover_ratio + 0.3 * jaccard
+
+
 def score_choice_match(user_input: str, ai_reply: str) -> int:
     """评估玩家输入与 AI 给出的后续行动建议是否匹配。"""
     sections = _extract_sections(ai_reply)
@@ -63,14 +88,24 @@ def score_choice_match(user_input: str, ai_reply: str) -> int:
     if not action_text:
         return 1
 
-    user_grams = _zh_bigrams(user_input)
-    action_grams = _zh_bigrams(action_text)
-    if not user_grams or not action_grams:
+    action_lines = _extract_action_lines(action_text)
+    if not action_lines:
         return 1
 
-    overlap = len(user_grams & action_grams)
-    ratio = overlap / max(1, len(user_grams))
-    return _scale_ratio_to_5(ratio)
+    user_text = user_input.strip()
+    option_match = re.match(r"^\s*([A-Za-z])[\.)）:：、\s]", user_text)
+    if option_match:
+        idx = ord(option_match.group(1).upper()) - ord("A")
+        if 0 <= idx < len(action_lines):
+            return 5
+
+    compact_user = re.sub(r"\s+", "", user_text)
+    compact_action = re.sub(r"\s+", "", action_text)
+    if compact_user and compact_user in compact_action:
+        return 5
+
+    best_similarity = max(_line_similarity(user_text, line) for line in action_lines)
+    return _scale_ratio_to_5(best_similarity)
 
 
 def score_plot_coherence(history: Sequence[Tuple[str, str]], ai_reply: str) -> int:

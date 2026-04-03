@@ -14,6 +14,8 @@ import statistics
 from pathlib import Path
 from typing import Dict, List
 
+from log_utils import is_successful_record
+
 
 def _safe_mean(values: List[float]) -> float:
     return statistics.mean(values) if values else 0.0
@@ -65,6 +67,11 @@ def summarize(rows: List[Dict]) -> Dict[str, float]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Summarize StoryWeaver evaluation logs")
     parser.add_argument("--input", default="experiments/turn_metrics.jsonl", help="Path to JSONL log")
+    parser.add_argument(
+        "--include-failed",
+        action="store_true",
+        help="包含失败回合（默认会自动过滤失败记录）。",
+    )
     args = parser.parse_args()
 
     rows = load_records(Path(args.input))
@@ -72,8 +79,17 @@ def main() -> None:
         print("No records found. Run the game first to generate logs.")
         return
 
+    raw_count = len(rows)
+    if not args.include_failed:
+        rows = [row for row in rows if is_successful_record(row)]
+        if not rows:
+            print("No successful records found after filtering failed turns.")
+            return
+
     stats = summarize(rows)
     print("=== StoryWeaver Evaluation Summary ===")
+    print(f"num_turns_raw: {raw_count}")
+    print(f"num_turns_used: {len(rows)}")
     for key, value in stats.items():
         if isinstance(value, float):
             print(f"{key}: {value:.4f}")

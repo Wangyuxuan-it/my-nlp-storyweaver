@@ -452,6 +452,8 @@ def submit_action_stream(
     candidate_count = 1
     selected_candidate_index = 0
     rerank_method = "single"
+    generation_success = True
+    generation_error = ""
     try:
         raw_candidates = generator.generate_candidates_with_control(
             player_input=user_text,
@@ -491,6 +493,8 @@ def submit_action_stream(
         else:
             ai_reply = normalized_candidates[0]
     except Exception as exc:  # noqa: BLE001
+        generation_success = False
+        generation_error = str(exc)
         ai_reply = (
             "系统提示：当前无法连接剧情引擎，请检查 API Key、网络或配额后重试。\n"
             f"错误信息：{exc}"
@@ -569,6 +573,8 @@ def submit_action_stream(
             "candidate_count": candidate_count,
             "selected_candidate_index": selected_candidate_index,
             "rerank_method": rerank_method,
+            "generation_success": generation_success,
+            "generation_error": generation_error,
             "timeline_size": len(next_case_state.get("timeline", [])),
             "evidence_size": len(next_case_state.get("evidence", [])),
             **metric_scores,

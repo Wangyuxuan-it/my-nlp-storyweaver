@@ -73,6 +73,6 @@
       }
     }
   },
-  "intent_model_path": "/workspaces/NLP-project/storyweaver/artifacts/intent_model.joblib",
-  "coherence_model_path": "/workspaces/NLP-project/storyweaver/artifacts/coherence_model.joblib"
+  "intent_model_path": "artifacts/intent_model.joblib",
+  "coherence_model_path": "artifacts/coherence_model.joblib"
 }

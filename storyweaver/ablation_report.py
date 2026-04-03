@@ -18,6 +18,15 @@ import statistics
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from log_utils import is_successful_record
+
+
+EXPECTED_CONFIGS = {
+    ("full", True, True),
+    ("no_intent", False, True),
+    ("no_memory", True, False),
+}
+
 
 def _safe_mean(values: List[float]) -> float:
     return statistics.mean(values) if values else 0.0
@@ -160,6 +169,27 @@ def key_text(key: Tuple[str, bool, bool, str]) -> str:
     return f"tag={tag} | intent={use_intent} | memory={use_memory} | mode={mode}"
 
 
+def report_coverage(groups: Dict[Tuple[str, bool, bool, str], List[Dict]]) -> None:
+    """检查每个 mode 的消融分组覆盖情况。"""
+    modes = sorted({key[3] for key in groups.keys()})
+    if not modes:
+        print("No mode groups found for coverage check.")
+        return
+
+    print("\n=== Ablation Coverage Check ===")
+    for mode in modes:
+        present = {(tag, use_intent, use_memory) for tag, use_intent, use_memory, m in groups.keys() if m == mode}
+        missing = [cfg for cfg in sorted(EXPECTED_CONFIGS) if cfg not in present]
+        coverage = (len(EXPECTED_CONFIGS) - len(missing)) / len(EXPECTED_CONFIGS)
+        print(f"mode={mode} | coverage={coverage:.2f}")
+        if not missing:
+            print("  missing: none")
+            continue
+
+        for tag, use_intent, use_memory in missing:
+            print(f"  missing: tag={tag} | intent={use_intent} | memory={use_memory}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Summarize StoryWeaver ablation results")
     parser.add_argument("--input", default="experiments/turn_metrics.jsonl", help="Path to JSONL log")
@@ -168,12 +198,24 @@ def main() -> None:
         default="",
         help="仅统计指定模式（如：自由模式 / 叙事模式）；为空则统计全部。",
     )
+    parser.add_argument(
+        "--include-failed",
+        action="store_true",
+        help="包含失败回合（默认会自动过滤失败记录）。",
+    )
     args = parser.parse_args()
 
     rows = load_records(Path(args.input))
     if not rows:
         print("No records found. Run experiments first.")
         return
+
+    raw_count = len(rows)
+    if not args.include_failed:
+        rows = [row for row in rows if is_successful_record(row)]
+        if not rows:
+            print("No successful records found after filtering failed turns.")
+            return
 
     if args.mode:
         rows = [row for row in rows if str(row.get("mode", "")) == args.mode]
@@ -186,6 +228,8 @@ def main() -> None:
         groups.setdefault(key_of(row), []).append(row)
 
     print("=== StoryWeaver Ablation Report ===")
+    print(f"num_turns_raw: {raw_count}")
+    print(f"num_turns_used: {len(rows)}")
     for group_key, group_rows in sorted(groups.items(), key=lambda x: key_text(x[0])):
         stats = summarize_group(group_rows)
         session_count = len({str(r.get("session_id", "")).strip() for r in group_rows if str(r.get("session_id", "")).strip()})
@@ -196,6 +240,8 @@ def main() -> None:
                 print(f"{key}: {value:.4f}")
             else:
                 print(f"{key}: {value}")
+
+    report_coverage(groups)
 
     full_group_keys = _find_full_group_keys(groups)
     if not full_group_keys:

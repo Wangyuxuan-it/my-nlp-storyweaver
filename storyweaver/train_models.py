@@ -15,6 +15,17 @@ from pathlib import Path
 from ml_models import ARTIFACT_DIR, CoherenceClassifier, IntentClassifier
 
 
+BASE_DIR = Path(__file__).resolve().parent
+
+
+def _display_path(path: Path) -> str:
+    """优先输出相对项目根目录的路径，避免机器相关绝对路径污染。"""
+    try:
+        return str(path.resolve().relative_to(BASE_DIR))
+    except ValueError:
+        return str(path.resolve())
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train StoryWeaver ML models")
     parser.add_argument("--intent-data", default="data/processed/intent_dataset.jsonl")
@@ -34,8 +45,8 @@ def main() -> None:
     summary = {
         "intent": intent_metrics,
         "coherence": coherence_metrics,
-        "intent_model_path": str(out_dir / "intent_model.joblib"),
-        "coherence_model_path": str(out_dir / "coherence_model.joblib"),
+        "intent_model_path": _display_path(out_dir / "intent_model.joblib"),
+        "coherence_model_path": _display_path(out_dir / "coherence_model.joblib"),
     }
 
     with (out_dir / "training_summary.json").open("w", encoding="utf-8") as f:

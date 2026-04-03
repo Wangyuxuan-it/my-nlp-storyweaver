@@ -5,3 +5,4 @@ __pycache__/
 # Environment secrets
 .env
 storyweaver/.env
+storyweaver/.env.local
