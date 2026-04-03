@@ -1,0 +1,26 @@
+{
+  "intent_total": 500,
+  "coherence_total": 300,
+  "intent_label_distribution": {
+    "investigate": 125,
+    "interrogate": 125,
+    "deduce": 125,
+    "act": 125
+  },
+  "coherence_label_distribution": {
+    "1": 150,
+    "0": 150
+  },
+  "intent_split_distribution": {
+    "train": 300,
+    "val": 100,
+    "test": 100
+  },
+  "coherence_split_distribution": {
+    "train": 224,
+    "val": 38,
+    "test": 38
+  },
+  "template_cluster_split_enabled": true,
+  "seed": 42
+}

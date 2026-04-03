@@ -1,0 +1,78 @@
+{
+  "intent": {
+    "accuracy": 0.5,
+    "macro_f1": 0.375,
+    "report": {
+      "act": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 25.0
+      },
+      "deduce": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 25.0
+      },
+      "interrogate": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 25.0
+      },
+      "investigate": {
+        "precision": 0.3333333333333333,
+        "recall": 1.0,
+        "f1-score": 0.5,
+        "support": 25.0
+      },
+      "accuracy": 0.5,
+      "macro avg": {
+        "precision": 0.3333333333333333,
+        "recall": 0.5,
+        "f1-score": 0.375,
+        "support": 100.0
+      },
+      "weighted avg": {
+        "precision": 0.33333333333333326,
+        "recall": 0.5,
+        "f1-score": 0.375,
+        "support": 100.0
+      }
+    }
+  },
+  "coherence": {
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "report": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 19.0
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 19.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 38.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 38.0
+      }
+    }
+  },
+  "intent_model_path": "/workspaces/NLP-project/storyweaver/artifacts/intent_model.joblib",
+  "coherence_model_path": "/workspaces/NLP-project/storyweaver/artifacts/coherence_model.joblib"
+}
